@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop Fluid Advisor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+    .card {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+    }
+    .title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .vehicle-header {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #9ca3af;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #030712;
+      color: #e5e7eb;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px #60a5fa55;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-right: 6px;
+    }
+    .badge-ok {
+      background: #064e3b;
+      color: #6ee7b7;
+    }
+    .badge-warn {
+      background: #7c2d12;
+      color: #fed7aa;
+    }
+    .badge-system {
+      background: #111827;
+      color: #9ca3af;
+      border: 1px solid #374151;
+    }
+    .spec {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    .matches, .warnings {
+      margin-top: 8px;
+      font-size: 0.85rem;
+    }
+    .matches ul, .warnings ul {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+    .system-card {
+      border-top: 1px solid #374151;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .error {
+      color: #fecaca;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+    @media (min-width: 640px) {
+      .header-flex {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+      }
+      .header-flex .field {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="title">Shop Fluid Advisor</div>
+      <p style="font-size:0.85rem;color:#9ca3af;margin-top:0;">
+        Enter VIN → see required specs → see which of your fluids are safe, and which are <strong>DO NOT USE</strong>.
+      </p>
+      <div class="header-flex">
+        <div class="field">
+          <label for="vin-input">Vehicle VIN (17 characters)</label>
+          <input id="vin-input" type="text" maxlength="17" placeholder="e.g. 2FMPK4K92LBB12345" />
+        </div>
+        <div>
+          <button id="search-btn">Lookup</button>
+        </div>
+      </div>
+      <div id="error" class="error"></div>
+      <div class="vehicle-header" id="vehicle-header"></div>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8001"; // change if running backend elsewhere
+
+    const vinInput = document.getElementById("vin-input");
+    const searchBtn = document.getElementById("search-btn");
+    const errorDiv = document.getElementById("error");
+    const vehicleHeader = document.getElementById("vehicle-header");
+    const resultsDiv = document.getElementById("results");
+
+    function clearOutput() {
+      errorDiv.textContent = "";
+      vehicleHeader.textContent = "";
+      resultsDiv.innerHTML = "";
+    }
+
+    function renderResults(data) {
+      const v = data.vehicle;
+      const titleText = [
+        v.year,
+        v.make,
+        v.model,
+        v.trim ? `(${v.trim})` : null,
+        v.engine ? `- ${v.engine}` : null
+      ].filter(Boolean).join(" ");
+
+      vehicleHeader.textContent = titleText || "Vehicle details not available.";
+
+      const container = document.createElement("div");
+      container.className = "card";
+
+      data.fluids.forEach(fluid => {
+        const systemDiv = document.createElement("div");
+        systemDiv.className = "system-card";
+
+        const systemTitle = document.createElement("div");
+        systemTitle.innerHTML = `<span class="badge badge-system">${fluid.system.replace("_"," ")}</span>`;
+        systemDiv.appendChild(systemTitle);
+
+        const spec = document.createElement("div");
+        spec.className = "spec";
+        spec.textContent = `Required spec: ${fluid.required_spec}`;
+        systemDiv.appendChild(spec);
+
+        // Matches
+        const matchesDiv = document.createElement("div");
+        matchesDiv.className = "matches";
+        if (fluid.matches.length > 0) {
+          const badge = document.createElement("span");
+          badge.className = "badge badge-ok";
+          badge.textContent = "Compatible in stock";
+          matchesDiv.appendChild(badge);
+
+          const list = document.createElement("ul");
+          fluid.matches.forEach(m => {
+            const li = document.createElement("li");
+            li.textContent = `${m.product.name}${m.product.notes ? " – " + m.product.notes : ""}`;
+            list.appendChild(li);
+          });
+          matchesDiv.appendChild(list);
+        } else {
+          matchesDiv.innerHTML = `<span class="badge badge-warn">No compatible fluid in inventory</span>`;
+        }
+        systemDiv.appendChild(matchesDiv);
+
+        // Warnings
+        if (fluid.warnings && fluid.warnings.length > 0) {
+          const warnsDiv = document.createElement("div");
+          warnsDiv.className = "warnings";
+          const header = document.createElement("div");
+          header.textContent = "Warnings:";
+          warnsDiv.appendChild(header);
+
+          const list = document.createElement("ul");
+          fluid.warnings.forEach(w => {
+            const li = document.createElement("li");
+            const productsText = w.products && w.products.length
+              ? ` [${w.products.join(", ")}]`
+              : "";
+            li.textContent = w.message + productsText;
+            list.appendChild(li);
+          });
+          warnsDiv.appendChild(list);
+          systemDiv.appendChild(warnsDiv);
+        }
+
+        container.appendChild(systemDiv);
+      });
+
+      resultsDiv.innerHTML = "";
+      resultsDiv.appendChild(container);
+    }
+
+    async function lookup() {
+      clearOutput();
+      const vin = vinInput.value.trim().toUpperCase();
+
+      if (vin.length !== 17) {
+        errorDiv.textContent = "VIN must be exactly 17 characters.";
+        return;
+      }
+
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Checking…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/fluids/${encodeURIComponent(vin)}`);
+        if (!res.ok) {
+          const msg = await res.json().catch(() => ({}));
+          throw new Error(msg.detail || `HTTP error ${res.status}`);
+        }
+        const data = await res.json();
+        renderResults(data);
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = err.message || "Error fetching data.";
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "Lookup";
+      }
+    }
+
+    searchBtn.addEventListener("click", lookup);
+    vinInput.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") lookup();
+    });
+  </script>
+</body>
+</html>
