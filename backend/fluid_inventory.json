@@ -1,0 +1,86 @@
+[
+  {
+    "id": "maxlife_mv",
+    "name": "Valvoline MaxLife Multi-Vehicle ATF",
+    "type": "transmission",
+    "compatible_specs": [
+      "DEXRON III",
+      "DEXRON VI",
+      "MERCON",
+      "MERCON V",
+      "MERCON LV"
+    ],
+    "not_for_specs": [
+      "MERCON ULV"
+    ],
+    "notes": "Do NOT use where MERCON ULV is specifically required."
+  },
+  {
+    "id": "mercon_ulv_oem",
+    "name": "Motorcraft MERCON ULV",
+    "type": "transmission",
+    "compatible_specs": [
+      "MERCON ULV"
+    ],
+    "not_for_specs": [],
+    "notes": "OEM ULV fluid for 10-speed Ford transmissions and other ULV applications."
+  },
+  {
+    "id": "motorcraft_yellow_coolant",
+    "name": "Motorcraft Yellow Coolant",
+    "type": "coolant",
+    "compatible_specs": [
+      "MOTORCRAFT YELLOW",
+      "FORD YELLOW",
+      "G-05"
+    ],
+    "not_for_specs": [],
+    "notes": "For late-model Ford yellow spec."
+  },
+  {
+    "id": "valvoline_75w140",
+    "name": "Valvoline 75W-140 Full Synthetic Gear Oil",
+    "type": "rear_diff",
+    "compatible_specs": [
+      "75W-140",
+      "75W140",
+      "SAE75W-140 GL-5"
+    ],
+    "not_for_specs": [],
+    "notes": "Common Ford rear diff spec."
+  },
+  {
+    "id": "valvoline_75w90_front",
+    "name": "Valvoline 75W-90 Synthetic Gear Oil",
+    "type": "front_diff",
+    "compatible_specs": [
+      "75W-90",
+      "75W90",
+      "SAE75W-90 GL-5"
+    ],
+    "not_for_specs": [],
+    "notes": "Common front diff spec."
+  },
+  {
+    "id": "universal_pentosin_ps",
+    "name": "Pentosin CHF 11S Power Steering Fluid",
+    "type": "power_steering",
+    "compatible_specs": [
+      "CHF 11S",
+      "MINERAL PSF"
+    ],
+    "not_for_specs": [],
+    "notes": "Check OE spec before use."
+  },
+  {
+    "id": "synthetic_5w30",
+    "name": "Full Synthetic 5W-30 Engine Oil",
+    "type": "engine_oil",
+    "compatible_specs": [
+      "5W-30",
+      "SAE 5W-30"
+    ],
+    "not_for_specs": [],
+    "notes": "Add OEM approvals if needed (Dexos, VW 504, etc.)"
+  }
+]
